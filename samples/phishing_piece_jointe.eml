@@ -1,0 +1,38 @@
+Return-Path: <facturation@banque-exernple.example>
+Received: from mail.banque-exernple.example (mail.banque-exernple.example [192.0.2.77])
+	by mx.exemple.example with ESMTPS id 2bVn8Ks4Lm
+	for <client@exemple.example>; Sat, 24 Oct 2026 11:02:10 +0200
+Authentication-Results: mx.exemple.example;
+	spf=pass smtp.mailfrom=banque-exernple.example;
+	dkim=pass header.d=banque-exernple.example;
+	dmarc=pass header.from=banque-exernple.example
+From: Banque Exemple - Facturation <facturation@banque-exernple.example>
+To: client@exemple.example
+Subject: =?utf-8?q?Facture_impay=C3=A9e_n=C2=B02026-10-5517?=
+Date: Sat, 24 Oct 2026 11:02:08 +0200
+Message-ID: <5517.facture@banque-exernple.example>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="MIXTE"
+
+--MIXTE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+Bonjour,
+
+Sauf erreur de notre part, la facture ci-jointe reste impayée.
+Merci de régler la somme de 349,90 EUR avant ce soir pour éviter des frais de recouvrement.
+
+Paiement sécurisé : https://banque-exernple.example/paiement
+
+Service Facturation
+
+--MIXTE
+Content-Type: application/octet-stream; name="facture_octobre.pdf.exe"
+Content-Disposition: attachment; filename="facture_octobre.pdf.exe"
+Content-Transfer-Encoding: base64
+
+Q2VjaSBlc3QgdW4gZmljaGllciBkZSB0ZXN0IGlub2ZmZW5zaWYgcG91ciBQaGlzaEFuYWx5emVy
+Lgo=
+
+--MIXTE--

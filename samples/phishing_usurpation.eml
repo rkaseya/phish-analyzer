@@ -1,0 +1,44 @@
+Return-Path: <bounce-7731@mailer-campagne.test>
+Received: from vps-4521.hebergeur-low-cost.test (unknown [203.0.113.45])
+	by mx.exemple.example with ESMTP id 9xLq0Rr2Pa
+	for <client@exemple.example>; Fri, 23 Oct 2026 02:47:31 +0200
+Authentication-Results: mx.exemple.example;
+	spf=fail smtp.mailfrom=mailer-campagne.test;
+	dkim=none;
+	dmarc=fail header.from=banque-exemple.example
+From: Banque Exemple <securite@banque-exemple.example>
+Reply-To: support.banque.exemple@webmail-gratuit.test
+To: client@exemple.example
+Subject: =?utf-8?q?URGENT_=3A_votre_compte_sera_suspendu_sous_24h?=
+Date: Fri, 23 Oct 2026 02:47:29 +0200
+Message-ID: <a81f3c9e02@vps-4521.hebergeur-low-cost.test>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="SEPARATEUR"
+
+--SEPARATEUR
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+Cher client,
+
+Une activité inhabituelle a été détectée sur votre compte.
+Sans vérification de votre identité, votre compte sera suspendu sous 24 heures.
+
+Vérifiez votre compte immédiatement : https://www.banque-exemple.example/connexion
+
+Le service sécurité
+
+--SEPARATEUR
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+<html><body>
+<p>Cher client,</p>
+<p>Une activité inhabituelle a été détectée sur votre compte.<br>
+Sans vérification de votre identité, <b>votre compte sera suspendu sous 24 heures</b>.</p>
+<p>Vérifiez votre compte immédiatement :
+<a href="http://203.0.113.45/banque-exemple/connexion.php">https://www.banque-exemple.example/connexion</a></p>
+<p>Le service sécurité</p>
+</body></html>
+
+--SEPARATEUR--
