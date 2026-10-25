@@ -2,6 +2,10 @@
 
 Outil en ligne de commande qui analyse un e-mail suspect (fichier `.eml`) et rend un verdict argumenté : **légitime**, **suspect** ou **malveillant**. Il examine les en-têtes d'authentification, les liens et les pièces jointes, puis explique chaque indice relevé, comme le ferait un analyste SOC lors du tri d'un signalement de phishing.
 
+![Rapport HTML de PhishAnalyzer](docs/rapport.png)
+
+Le même verdict, en ligne de commande :
+
 ```
 === PhishAnalyzer ===
 
