@@ -8,6 +8,8 @@ from pathlib import Path
 from analyzer.headers import analyser_entetes, domaine
 from analyzer.parser import charger_email
 
+from email.message import EmailMessage
+
 SAMPLES = Path(__file__).parent.parent / "samples"
 
 
@@ -57,3 +59,11 @@ def test_domaine_sosie_passe_les_entetes():
     # Un attaquant qui possède son propre domaine passe SPF, DKIM et DMARC :
     # l'analyse des en-têtes seule ne suffit pas (d'où l'analyse des liens ensuite)
     assert codes_alertes("phishing_piece_jointe.eml") == set()
+
+
+def test_sans_authentication_results():
+    message = EmailMessage()
+    message["From"] = "contact@banque-exemple.example"
+    # Pas d'en-tête Authentication-Results du tout
+    codes = {alerte["code"] for alerte in analyser_entetes(message)}
+    assert codes == {"dmarc","spf","dkim"}

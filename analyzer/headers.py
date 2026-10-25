@@ -1,7 +1,11 @@
 import re
 from email.utils import parseaddr
 
-
+EXPLICATIONS = {
+    "spf": "le serveur d'envoi n'est pas autorisé par le domaine",
+    "dkim": "pas de signature numérique",
+    "dmarc": "pas de protocole de sécurité et d'authentifications des courriels",
+}
 def domaine(valeur):
     """Renvoie le domaine d'une adresse e-mail, en minuscules ('' si absent)."""
     # 1. Si valeur est None ou vide, renvoyer ""
@@ -37,9 +41,26 @@ def analyser_entetes(message):
     # Même chose pour Return-Path, avec le code "return_path"
     domaine_return_path = domaine(message["Return-Path"])
     if domaine_return_path and domaine_return_path != domaine_from:
-        alertes.append({"code" : "return_path", "detail": f"Return-path pointe vers {domaine_return_path} au lieu de {domaine_from}"})
+        alertes.append({"code" : "return_path", "detail": f"Return-Path pointe vers {domaine_return_path} au lieu de {domaine_from}"})
 
-    # --- Partie B : SPF, DKIM, DMARC ---
-    # (on verra après)
+        # --- Partie B : SPF, DKIM, DMARC ---
+    resultats_auth = str(message["Authentication-Results"] or "")
+
+    for verification in ["spf", "dkim", "dmarc"]:
+        resultat_recherche = re.search(rf"{verification}=(\w+)", resultats_auth)
+
+        if resultat_recherche is None:
+            result = "absent"
+        else:
+            result = resultat_recherche.group(1)
+
+        if result != "pass":
+            alertes.append({
+                "code": verification,
+                "detail": f"Échec de la vérification {verification.upper()} ({result}) : {EXPLICATIONS[verification]}",
+            })
 
     return alertes
+
+
+
