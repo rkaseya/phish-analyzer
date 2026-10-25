@@ -34,9 +34,29 @@ def double_extension(nom_fichier):
 
 def lister_pieces_jointes(message):
     """Étape D : renvoie [{"nom": ..., "taille": ..., "sha256": ...}, ...] pour chaque pièce jointe."""
-    return []  # à compléter
+    pieces_jointes = []
+    for partie in message.iter_attachments():
+        # 1. Récupérer le nom du fichier
+        nom_fichier = partie.get_filename() or ""
+
+        # 2. Récupérer le contenu en octets
+        contenu_octet_fichier = partie.get_payload(decode=True)
+
+        # 3. Ajouter le dictionnaire : nom, taille (nombre d'octets), sha256 (ta fonction de l'étape A)
+        pieces_jointes.append({"nom": nom_fichier, "taille" : len(contenu_octet_fichier),"sha256" : sha256(contenu_octet_fichier) })
+    
+    return pieces_jointes
 
 
 def analyser_pieces_jointes(message):
     """Étape E : renvoie la liste des alertes liées aux pièces jointes."""
-    return []  # à compléter
+    alertes = []
+    for piece_jointe in lister_pieces_jointes(message):
+        nom_fichier = piece_jointe["nom"]
+        # 1. Si l'extension est dangereuse → alerte "extension_dangereuse"
+        if extension_dangereuse(nom_fichier):
+            alertes.append({"code" : "extension_dangereuse" , "detail" : f"{nom_fichier} contient une extension dangereuse {nom_fichier.lower().split('.')[-1]} l'empreinte SHA-256 est: {piece_jointe['sha256']}"})
+        # 2. Si c'est une double extension → alerte "double_extension"
+        if double_extension(nom_fichier):
+            alertes.append({"code" : "double_extension", "detail" : f"{nom_fichier} se fait passer pour un fichier {nom_fichier.lower().split('.')[-2]} mais c'est un {nom_fichier.lower().split('.')[-1]}"})
+    return alertes
