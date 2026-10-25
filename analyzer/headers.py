@@ -3,8 +3,8 @@ from email.utils import parseaddr
 
 EXPLICATIONS = {
     "spf": "le serveur d'envoi n'est pas autorisé par le domaine",
-    "dkim": "pas de signature numérique",
-    "dmarc": "pas de protocole de sécurité et d'authentifications des courriels",
+    "dkim": "la signature cryptographique du domaine est absente ou invalide",
+    "dmarc": "le domaine affiché dans From n’est validé ni par SPF ni par DKIM (usurpation probable)",
 }
 def domaine(valeur):
     """Renvoie le domaine d'une adresse e-mail, en minuscules ('' si absent)."""
