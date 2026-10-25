@@ -135,7 +135,7 @@ python -m pytest -v
 
 ## Méthode de développement
 
-Ce projet est un projet d'apprentissage, réalisé avec l'accompagnement de Claude (Anthropic). Contrairement à mon projet précédent, où l'IA avait écrit la majeure partie du code, **j'ai écrit moi-même le code des modules d'analyse** : Claude m'a expliqué chaque notion, a préparé les squelettes, les tests et les e-mails d'exemple, puis a relu et commenté mon code jusqu'à ce que tous les tests passent. J'ai également écrit certains tests pour couvrir des cas limites que j'avais identifiés. Le module de rapport HTML et ce README ont été écrits par Claude.
+Ce projet est un projet d'apprentissage, réalisé avec l'accompagnement de Claude. Contrairement à mon projet précédent, où l'IA avait écrit la majeure partie du code, **j'ai écrit moi-même le code des modules d'analyse** : Claude m'a expliqué chaque notion, a préparé les squelettes, les tests et les e-mails d'exemple, puis a relu et commenté mon code jusqu'à ce que tous les tests passent. J'ai également écrit certains tests pour couvrir des cas limites que j'avais identifiés.
 
 Ce que j'en retiens :
 - le fonctionnement de SPF, DKIM et DMARC, et pourquoi le champ `From` ne prouve rien à lui seul ;
