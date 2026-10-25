@@ -1,3 +1,4 @@
+import re
 from email.utils import parseaddr
 
 
@@ -20,4 +21,25 @@ def domaine(valeur):
 
 def analyser_entetes(message):
     """Analyse les en-têtes et renvoie la liste des alertes."""
-    return []  # à compléter à l'étape suivante
+    alertes = []
+    domaine_from = domaine(message["From"])
+
+    # --- Partie A : Reply-To et Return-Path ---
+    # Pour Reply-To :
+    #   - calculer son domaine
+    domaine_reply_to = domaine(message["Reply-To"])
+
+    #   - s'il n'est pas vide ET différent de domaine_from,
+    #     ajouter {"code": "reply_to", "detail": "..."} à la liste
+    if domaine_reply_to and domaine_reply_to != domaine_from:
+        alertes.append({"code": "reply_to", "detail" : f"Reply-To pointe vers {domaine_reply_to} au lieu de {domaine_from}"})
+                        
+    # Même chose pour Return-Path, avec le code "return_path"
+    domaine_return_path = domaine(message["Return-Path"])
+    if domaine_return_path and domaine_return_path != domaine_from:
+        alertes.append({"code" : "return_path", "detail": f"Return-path pointe vers {domaine_return_path} au lieu de {domaine_from}"})
+
+    # --- Partie B : SPF, DKIM, DMARC ---
+    # (on verra après)
+
+    return alertes
