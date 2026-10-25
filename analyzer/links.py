@@ -50,7 +50,7 @@ def est_sosie(nom_hote):
     """Étape C : True si le domaine ressemble à un domaine connu sans en être un."""
     for domaine_connu in DOMAINES_CONNUS:
         # 1. Si nom_hote EST domaine_connu, ou en est un sous-domaine → return False
-        if nom_hote == domaine_connu or nom_hote.endswith(".banque-exemple.example"):
+        if nom_hote == domaine_connu or nom_hote.endswith("."+domaine_connu):
             return False
         # 2. Sinon, si la ressemblance (ratio) est >= 0.8 → return True
         elif SequenceMatcher(None, nom_hote, domaine_connu).ratio() >= 0.8:
