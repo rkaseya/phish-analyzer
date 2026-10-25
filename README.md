@@ -82,6 +82,15 @@ python main.py samples/phishing_usurpation.eml    # MALVEILLANT : usurpation + l
 python main.py samples/phishing_piece_jointe.eml  # MALVEILLANT : domaine sosie + .pdf.exe
 ```
 
+Pour enregistrer aussi un **rapport HTML**, à ouvrir dans un navigateur ou à partager :
+
+```bash
+python main.py samples/phishing_piece_jointe.eml --html rapports/facture.html
+open rapports/facture.html
+```
+
+Tout le texte issu de l'e-mail (sujet, expéditeur, noms de fichiers) est échappé avant d'être inséré dans la page : un e-mail piégé ne peut pas injecter de code dans le rapport (protection contre le XSS).
+
 Ils utilisent une banque et des domaines fictifs (`.example`, `.test`, réservés aux tests). La pièce jointe est un fichier texte inoffensif : seul son nom est piégé.
 
 ## Architecture
@@ -94,7 +103,8 @@ phish-analyzer/
 │   ├── headers.py          # analyse des en-têtes (Reply-To, Return-Path, SPF, DKIM, DMARC)
 │   ├── links.py            # extraction et analyse des liens
 │   ├── attachments.py      # analyse des pièces jointes et empreintes SHA-256
-│   └── score.py            # score de risque et verdict
+│   ├── score.py            # score de risque et verdict
+│   └── rapport.py          # rapport HTML (contenu échappé contre le XSS)
 ├── samples/                # e-mails de test
 └── tests/                  # tests automatiques (pytest)
 ```
@@ -107,7 +117,7 @@ Chaque module renvoie une liste d'alertes au même format, `{"code": ..., "detai
 python -m pytest -v
 ```
 
-53 tests couvrent chaque contrôle, sur les e-mails d'exemple et sur des cas limites (en-tête absent, pièce jointe sans nom, lien « Cliquez ici », numéro de version dans un nom de fichier…).
+61 tests couvrent chaque contrôle, sur les e-mails d'exemple et sur des cas limites (en-tête absent, pièce jointe sans nom, lien « Cliquez ici », numéro de version dans un nom de fichier, sujet piégé contre le XSS…).
 
 ## Limites
 
@@ -122,11 +132,10 @@ python -m pytest -v
 - Détecter les **formules d'urgence** dans le texte (« sous 24 heures », « immédiatement », « compte suspendu »).
 - Vérifier les enregistrements **SPF et DMARC par requête DNS**.
 - Inspecter le contenu des **archives** jointes et repérer les documents Office à macros.
-- Générer un **rapport HTML** partageable.
 
 ## Méthode de développement
 
-Ce projet est un projet d'apprentissage, réalisé avec l'accompagnement de Claude (Anthropic). Contrairement à mon projet précédent, où l'IA avait écrit la majeure partie du code, **j'ai écrit moi-même le code des modules d'analyse** : Claude m'a expliqué chaque notion, a préparé les squelettes, les tests et les e-mails d'exemple, puis a relu et commenté mon code jusqu'à ce que tous les tests passent. J'ai également écrit certains tests pour couvrir des cas limites que j'avais identifiés. Ce README a été rédigé par Claude.
+Ce projet est un projet d'apprentissage, réalisé avec l'accompagnement de Claude (Anthropic). Contrairement à mon projet précédent, où l'IA avait écrit la majeure partie du code, **j'ai écrit moi-même le code des modules d'analyse** : Claude m'a expliqué chaque notion, a préparé les squelettes, les tests et les e-mails d'exemple, puis a relu et commenté mon code jusqu'à ce que tous les tests passent. J'ai également écrit certains tests pour couvrir des cas limites que j'avais identifiés. Le module de rapport HTML et ce README ont été écrits par Claude.
 
 Ce que j'en retiens :
 - le fonctionnement de SPF, DKIM et DMARC, et pourquoi le champ `From` ne prouve rien à lui seul ;

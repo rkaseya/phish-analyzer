@@ -1,18 +1,24 @@
-import sys 
-from analyzer.parser import charger_email
-from analyzer.score import analyser_email
+import argparse
+from datetime import datetime
+from pathlib import Path
+
 from analyzer.attachments import lister_pieces_jointes
+from analyzer.parser import charger_email
+from analyzer.rapport import generer_html
+from analyzer.score import analyser_email
 
 
 
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python main.py <fichier.eml>")
-        sys.exit(1)
+    # argparse lit les arguments et génère automatiquement l'aide (python main.py --help)
+    parseur = argparse.ArgumentParser(description="Analyse un e-mail suspect (.eml) et rend un verdict.")
+    parseur.add_argument("fichier", help="chemin du fichier .eml à analyser")
+    parseur.add_argument("--html", metavar="RAPPORT", help="enregistre aussi un rapport HTML à cet emplacement")
+    arguments = parseur.parse_args()
 
-    message = charger_email(sys.argv[1])
+    message = charger_email(arguments.fichier)
     resultat = analyser_email(message)
 
     print("=== PhishAnalyzer ===")
@@ -42,6 +48,16 @@ def main():
         for piece_jointe in pieces_jointes:
             print(f"  {piece_jointe['nom']} ({piece_jointe['taille']} octets)")
             print(f"  SHA-256 : {piece_jointe['sha256']}")
+
+    # --- Rapport HTML (option --html) ---
+    if arguments.html:
+        date_rapport = datetime.now().strftime("%d/%m/%Y à %H:%M")
+        page = generer_html(message, resultat, pieces_jointes, date_rapport)
+        chemin = Path(arguments.html)
+        chemin.parent.mkdir(parents=True, exist_ok=True)
+        chemin.write_text(page, encoding="utf-8")
+        print()
+        print(f"Rapport HTML : {chemin}")
 
 if __name__ == "__main__":
     main()
