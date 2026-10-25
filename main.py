@@ -3,9 +3,8 @@ from analyzer.parser import charger_email
 from analyzer.score import analyser_email
 from analyzer.attachments import lister_pieces_jointes
 
-email_analyse = analyser_email(message)
-print(email_analyse.upper())
-print(f"Il y a {len(email_analyse["alertes"])} alertes de sécurité")
+
+
 
 
 def main():
@@ -27,7 +26,7 @@ def main():
     print()
 
     # --- Étape 4 : les alertes ---
-    alertes = resultat["alertes"]
+    alertes = resultat['alertes']
     if alertes:
         print(f"Alertes ({len(alertes)}) :")
         for alerte in alertes:
