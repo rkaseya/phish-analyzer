@@ -4,6 +4,8 @@ from pathlib import Path
 from analyzer.links import analyser_liens, est_sosie, extraire_liens, hote
 from analyzer.parser import charger_email
 
+from email.message import EmailMessage
+
 SAMPLES = Path(__file__).parent.parent / "samples"
 
 
@@ -94,3 +96,14 @@ def test_chaque_alerte_lien_a_une_explication():
     for nom in ("phishing_usurpation.eml", "phishing_piece_jointe.eml"):
         for alerte in analyser_liens(charger(nom)):
             assert alerte["detail"], f"l'alerte {alerte['code']} n'a pas d'explication"
+
+
+
+def test_lien_cliquez_ici_n_est_pas_trompeur():
+    message = EmailMessage()
+    message.set_content("Version texte")
+    message.add_alternative(
+        '<a href="https://www.banque-exemple.example/compte">Cliquez ici</a>',
+        subtype="html",
+    )
+    assert analyser_liens(message) == []

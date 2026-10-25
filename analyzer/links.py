@@ -60,15 +60,26 @@ def est_sosie(nom_hote):
     return False
 
 
-
-
-
 def analyser_liens(message):
     """Étape D : renvoie la liste des alertes liées aux liens."""
     alertes = []
-    for url in extraire_liens(message):
-        if not hote(url):
-            alertes.append({"url": "ce lien n'est pas une lien url"})
-        elif est_sosie:
-            alertes.append({"sosie": "ce lien est un sosie d'un domaine connu"})
-    return alertes # à compléter
+
+    for lien in extraire_liens(message):
+        hote_url = hote(lien["url"])
+        hote_texte = hote(lien["texte"])
+
+        # 1. lien_ip : essayer ipaddress.ip_address(hote_url) dans un try/except
+        try:
+            ipaddress.ip_address(hote_url)
+            alertes.append({"code": "lien_ip", "detail" : f"Le lien mène directement vers l'adresse IP {hote_url} (un site légitime utilise un nom de domaine)"})
+        except ValueError:
+            pass
+
+        # 2. lien_trompeur : hote_texte n'est pas vide ET différent de hote_url
+        if hote_texte and hote_texte != hote_url:
+            alertes.append({"code": "lien_trompeur", "detail" : f"Le texte affiche {hote_texte} mais renvoie vers {hote_url}"})
+
+        # 3. domaine_sosie : est_sosie(hote_url)
+        if est_sosie(hote_url):
+            alertes.append({"code": "domaine_sosie", "detail" : f"{hote_url} est un sosie d'un site connu"})
+    return alertes
