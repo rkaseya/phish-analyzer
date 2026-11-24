@@ -2,6 +2,8 @@
 
 Outil en ligne de commande qui analyse un e-mail suspect (fichier `.eml`) et rend un verdict argumenté : **légitime**, **suspect** ou **malveillant**. Il examine les en-têtes d'authentification, les liens et les pièces jointes, puis explique chaque indice relevé, comme le ferait un analyste SOC lors du tri d'un signalement de phishing.
 
+Projet d'apprentissage réalisé avec une IA (Claude) comme mentor : la répartition du travail est détaillée dans [Méthode de développement](#méthode-de-développement), et les choix techniques sont justifiés dans [Choix de conception et compromis](#choix-de-conception-et-compromis).
+
 ![Rapport HTML de PhishAnalyzer](docs/rapport.png)
 
 Le même verdict, en ligne de commande :
@@ -123,6 +125,22 @@ python -m pytest -v
 
 61 tests couvrent chaque contrôle, sur les e-mails d'exemple et sur des cas limites (en-tête absent, pièce jointe sans nom, lien « Cliquez ici », numéro de version dans un nom de fichier, sujet piégé contre le XSS…).
 
+## Choix de conception et compromis
+
+| Choix retenu | Alternative | Pourquoi | Ce que ça coûte |
+|---|---|---|---|
+| **Lire l'en-tête `Authentication-Results`** ajouté par le serveur de réception | Refaire les vérifications SPF, DKIM et DMARC par requêtes DNS | Analyse hors ligne et reproductible (mêmes résultats à chaque test), sans dépendance réseau ; c'est aussi ce qu'un analyste lit en premier | On fait confiance au serveur de réception ; seul le premier en-tête est lu, sans vérifier l'identifiant du serveur qui l'a ajouté (un attaquant peut insérer un faux en-tête plus bas) |
+| **Score additif pondéré** (somme de points par alerte, plafonnée à 100) | Règles « tout ou rien », apprentissage automatique | Chaque point du score s'explique par une alerte précise : le verdict est **justifiable** auprès d'un utilisateur | Les poids sont fixés à la main, sans calibration sur des données réelles ; plusieurs indices faibles cumulés peuvent suffire à alerter |
+| **Trois verdicts** avec seuils à 20 et 50 | Un simple « phishing oui / non » | Le niveau « suspect » laisse place au doute et à une vérification humaine | Le choix des seuils est arbitraire tant qu'il n'est pas mesuré sur un jeu d'e-mails qualifiés |
+| **Domaines sosies** par ressemblance de texte (`difflib`, ratio ≥ 0,8) avec une liste de domaines connus | Distance de Levenshtein, outils de génération de variantes (type dnstwist), détection des homoglyphes | Bibliothèque standard, simple à expliquer et à tester ; les sous-domaines légitimes sont exclus | Seuil arbitraire ; nécessite une liste de marques à protéger ; ne voit pas les homoglyphes Unicode (`а` cyrillique au lieu de `a`) |
+| **Extraction des liens par expression régulière** sur le HTML | Un vrai analyseur HTML (`html.parser`) | Court et lisible pour les cas courants | Fragile : un attribut entre apostrophes ou sans guillemets échappe à la détection ; le texte d'un lien peut contenir des balises |
+| **Listes d'extensions** dangereuses et leurres | Identifier le vrai type du fichier par son contenu (signature, type MIME) | Couvre le piège le plus courant (`facture.pdf.exe`) en quelques lignes | Une liste est forcément incomplète, et le contenu réel du fichier n'est pas examiné |
+| **Empreinte SHA-256** des pièces jointes | MD5, SHA-1 | Standard actuel, accepté par les bases de menaces comme VirusTotal ; MD5 et SHA-1 ne résistent plus aux collisions | Aucun (calcul négligeable) |
+| **Format d'alerte commun** `{"code", "detail"}` pour tous les modules | Un format propre à chaque module | Les modules restent indépendants ; le score et les rapports traitent toutes les alertes de la même façon | Le détail est du texte libre, moins exploitable par une autre machine qu'un format structuré |
+| **Bibliothèque standard uniquement** ; pytest seulement pour les tests | Bibliothèques spécialisées (analyse d'e-mails, modèles HTML) | Installation immédiate, aucune dépendance à surveiller pour un outil qui manipule des fichiers hostiles | Plus de code écrit à la main |
+| Rapport HTML avec **échappement manuel** (`html.escape` + `string.Template`) | Un moteur de modèles qui échappe automatiquement (Jinja2) | Pas de dépendance supplémentaire | Chaque insertion doit être échappée à la main : un oubli créerait une faille XSS, d'où des **tests dédiés** avec un sujet piégé |
+| **Outil en ligne de commande** | Application web | Simple, scriptable, adapté au tri d'un fichier par un analyste | Pas d'historique ni d'interface pour un utilisateur non technique |
+
 ## Limites
 
 - **Authentification non revérifiée** : les résultats SPF, DKIM et DMARC sont lus dans l'en-tête `Authentication-Results` ajouté par le serveur de réception ; l'outil ne refait pas ces vérifications par requête DNS.
@@ -139,7 +157,17 @@ python -m pytest -v
 
 ## Méthode de développement
 
-Ce projet est un projet d'apprentissage, réalisé avec l'accompagnement de Claude. Contrairement à mon projet précédent, où l'IA avait écrit la majeure partie du code, **j'ai écrit moi-même le code des modules d'analyse** : Claude m'a expliqué chaque notion, a préparé les squelettes, les tests et les e-mails d'exemple, puis a relu et commenté mon code jusqu'à ce que tous les tests passent. J'ai également écrit certains tests pour couvrir des cas limites que j'avais identifiés.
+Ce projet est un projet d'apprentissage, réalisé avec l'accompagnement de Claude. Contrairement à mon projet précédent, où l'IA avait écrit la majeure partie du code, **j'ai écrit moi-même le code des modules d'analyse** : Claude m'a expliqué chaque notion, a préparé les squelettes (fonctions découpées en étapes), les tests et les e-mails d'exemple, puis a relu et commenté mon code jusqu'à ce que tous les tests passent. J'ai également écrit certains tests pour couvrir des cas limites que j'avais identifiés.
+
+| Partie | Ce que j'ai fait | Apport de l'IA |
+|---|---|---|
+| **Modules d'analyse** (`headers.py`, `links.py`, `attachments.py`) | Écriture du code de chaque fonction : extraction des domaines, SPF/DKIM/DMARC, liens trompeurs, sosies, extensions, empreintes | Squelettes découpés en étapes, explication des notions, relecture |
+| **Score et verdict** (`score.py`) | Écriture du calcul du score, du verdict et de l'assemblage des analyses | Squelette, barème de points (poids des alertes et seuils) |
+| **Rapport HTML** (`rapport.py`) | Pas de code écrit | Écriture du module : page HTML, feuille de style et échappement contre le XSS |
+| **Programme principal** (`main.py`) | Affichage des alertes et des pièces jointes | Squelette, gestion des arguments (`argparse`) |
+| **Tests** (61) | Tests de cas limites que j'avais identifiés | Écriture de la majorité des tests |
+| **E-mails d'exemple** | Utilisation pour valider chaque étape | Création des fichiers `.eml` |
+| **Documentation** | Relecture et validation | Rédaction du README |
 
 Ce que j'en retiens :
 - le fonctionnement de SPF, DKIM et DMARC, et pourquoi le champ `From` ne prouve rien à lui seul ;
